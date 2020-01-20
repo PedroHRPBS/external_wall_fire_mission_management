@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>flight_scenario</name>
+  <name>external_wall_fire</name>
   <version>0.0.0</version>
-  <description>The flight_scenario package</description>
+  <description>The external_wall_fire package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/flight_scenario</url> -->
+  <!-- <url type="website">http://wiki.ros.org/external_wall_fire</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -47,12 +47,18 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>positioning_system</build_depend>
+  <build_depend>common_srv</build_depend>
+  <build_depend>flight_scenario</build_depend>
+  
   <build_export_depend>cv_bridge</build_export_depend>
   <build_export_depend>image_transport</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>positioning_system</build_export_depend>
+  <build_export_depend>common_srv</build_export_depend>
+  <build_export_depend>flight_scenario</build_export_depend>
+
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>image_transport</exec_depend>
   <exec_depend>roscpp</exec_depend>
@@ -60,6 +66,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>positioning_system</exec_depend>
+  <exec_depend>common_srv</exec_depend>
+  <exec_depend>flight_scenario</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

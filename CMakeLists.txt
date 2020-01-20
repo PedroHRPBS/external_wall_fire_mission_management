@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(flight_scenario)
+project(external_wall_fire)
 
 add_compile_options(-std=c++11)
 
@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   message_generation
   positioning_system
+  common_srv
+  flight_scenario
 )
 
 # add_message_files(
@@ -30,7 +32,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs message_runtime positioning_system
+  CATKIN_DEPENDS roscpp std_msgs message_runtime positioning_system common_srv flight_scenario
 )
 
 include_directories(

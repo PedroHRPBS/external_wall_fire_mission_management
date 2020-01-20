@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: flight_scenario
-Description: Description of flight_scenario
-Version: 0.0.0
-Cflags: -I/usr/local/include
-Libs: -L/usr/local/lib 
-Requires: roscpp std_msgs message_runtime positioning_system
