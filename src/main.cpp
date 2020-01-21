@@ -44,7 +44,6 @@
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
 
-
     //****************ROS Units********************
     ros::init(argc, argv, "ex_bldg_fire_mm_node");
     ros::NodeHandle nh;
