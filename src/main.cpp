@@ -35,9 +35,10 @@
 #include "ROSUnit_SetIntClnt.hpp"
 #include "ROSUnit_SetIntSrv.hpp"
 #include "SetMissionState.hpp"
-#include "SystemStateCondition.hpp"
+#include "InternalSystemStateCondition.hpp"
 #include "internal_states.hpp"
 #include "ChangeInternalState.hpp"
+#include "ExternalSystemStateCondition.hpp"
 
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
@@ -60,7 +61,6 @@ int main(int argc, char** argv) {
     ROSUnit* ros_updt_yaw_ref = new ROSUnit_UpdateReferenceYaw_FS(nh);
     ROSUnit* ros_flight_command = new ROSUnit_FlightCommand(nh);
     ROSUnit* ros_set_int_srv = new ROSUnit_SetIntSrv("/ex_bldg_fire_mm/set_system_state", nh);
-    ROSUnit* ros_set_int_clnt = new ROSUnit_SetIntClnt("/ex_bldg_fire_mm/set_system_state", nh);
 
     //*****************Flight Elements*************
     //TODO send parameters of flightElements on the constructor.
@@ -101,31 +101,52 @@ int main(int argc, char** argv) {
     z_cross_takeoff_waypoint.condition_value = 1.4;
     z_cross_takeoff_waypoint.condition_met_for_larger=true;
     ros_pos_sub->add_callback_msg_receiver((msg_receiver*) &z_cross_takeoff_waypoint);
-
-    WaitForCondition z_cross_takeoff_waypoint_check;
-    z_cross_takeoff_waypoint_check.Wait_condition=(Condition*)&z_cross_takeoff_waypoint;
+    WaitForCondition* z_cross_takeoff_waypoint_check = new WaitForCondition((Condition*)&z_cross_takeoff_waypoint);
 
     SimplePlaneCondition z_cross_land_waypoint;
     z_cross_land_waypoint.selected_dim=Dimension3D::Z;
     z_cross_land_waypoint.condition_value=0.2;
     z_cross_land_waypoint.condition_met_for_larger=false;
+    WaitForCondition* z_cross_land_waypoint_check = new WaitForCondition((Condition*)&z_cross_land_waypoint);
 
-    WaitForCondition z_cross_land_waypoint_check;
-    z_cross_land_waypoint_check.Wait_condition=(Condition*)&z_cross_land_waypoint;
 
-    WaitForCondition not_ready_check, ready_to_start_check, scanning_outdoor_check;
-    WaitForCondition approach_outdoor_check, extinguish_outdoor_check, return_to_base_check;
-    WaitForCondition error_check, finished_check;
+    InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::NOT_READY);
+    WaitForCondition* not_ready_check = new WaitForCondition((Condition*)not_ready_condition);
 
-    SystemStateCondition* not_ready_condition = new SystemStateCondition(current_state_ptr, internal_state::NOT_READY);
-    SystemStateCondition* ready_to_start_condition = new SystemStateCondition(current_state_ptr, internal_state::READY_TO_START);
-    SystemStateCondition* scanning_outdoor_condition = new SystemStateCondition(current_state_ptr, internal_state::SCANNING_OUTDOOR);
-    SystemStateCondition* approach_outdoor_condition = new SystemStateCondition(current_state_ptr, internal_state::APPROACHING_OUTDOOR);
-    SystemStateCondition* extinguish_outdoor_condition = new SystemStateCondition(current_state_ptr, internal_state::EXTINGUISHING_OUTDOOR);
-    SystemStateCondition* return_to_base_condition = new SystemStateCondition(current_state_ptr, internal_state::RETURNING_TO_BASE);
-    SystemStateCondition* error_condition = new SystemStateCondition(current_state_ptr, internal_state::ERROR);
-    SystemStateCondition* finished_condition = new SystemStateCondition(current_state_ptr, internal_state::FINISHED);
+    InternalSystemStateCondition* ready_to_start_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::READY_TO_START);
+    WaitForCondition* ready_to_start_check = new WaitForCondition((Condition*)ready_to_start_condition);
 
+    InternalSystemStateCondition* scanning_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::SCANNING_OUTDOOR);
+    WaitForCondition* scanning_outdoor_check = new WaitForCondition((Condition*)scanning_outdoor_condition);
+
+    InternalSystemStateCondition* approach_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::APPROACHING_OUTDOOR);
+    WaitForCondition* approach_outdoor_check = new WaitForCondition((Condition*)approach_outdoor_condition);
+
+    InternalSystemStateCondition* extinguish_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::EXTINGUISHING_OUTDOOR);
+    WaitForCondition* extinguish_outdoor_check = new WaitForCondition((Condition*)extinguish_outdoor_condition);
+
+    InternalSystemStateCondition* return_to_base_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::RETURNING_TO_BASE);
+    WaitForCondition* return_to_base_check = new WaitForCondition((Condition*)return_to_base_condition);
+
+    InternalSystemStateCondition* error_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::ERROR);
+    WaitForCondition* error_check = new WaitForCondition((Condition*)error_condition);
+
+    InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::FINISHED);
+    WaitForCondition* finished_check = new WaitForCondition((Condition*)finished_condition);
+
+    //The int values passed on the following constructors, need to match the system states of the external systems.
+    ExternalSystemStateCondition* outdoor_wall_fire_detection_idle = new ExternalSystemStateCondition(0); //OUTDOOR_WALL_FIRE_DETECTION SYSTEM STATE: IDLE
+    WaitForCondition* outdoor_wall_fire_detection_idle_check = new WaitForCondition((Condition*)outdoor_wall_fire_detection_idle);
+    
+    ExternalSystemStateCondition* uav_control_landed = new ExternalSystemStateCondition(1); //UAV_CONTROL SYSTEM STATE: LANDED
+    WaitForCondition* uav_control_landed_check = new WaitForCondition((Condition*)uav_control_landed);
+    
+    ExternalSystemStateCondition* water_fire_extinguishing_idle = new ExternalSystemStateCondition(0); //WATER_FIRE_EXTINGUISING SYSTEM STATE: IDLE
+    WaitForCondition* water_fire_extinguishing_idle_check = new WaitForCondition((Condition*)water_fire_extinguishing_idle);
+    
+    ExternalSystemStateCondition* outdoor_navigation_idle = new ExternalSystemStateCondition(0); //OUTDOOR_NAVIGATION SYSTEM STATE: IDLE
+    WaitForCondition* outdoor_navigation_idle_check = new WaitForCondition((Condition*)outdoor_navigation_idle);
+    
     //******************Connections******************
 
     update_controller_pid_x->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
@@ -226,16 +247,6 @@ int main(int argc, char** argv) {
     ((SetReference_Z*)ref_z_on_takeoff)->setpoint_z = 1.5;
     ((SetReference_Z*)ref_z_on_land)->setpoint_z = 0.2;
 
-    //TODO make condition on constructor.
-    not_ready_check.Wait_condition = (Condition*)not_ready_condition;
-    ready_to_start_check.Wait_condition = (Condition*)ready_to_start_condition;
-    scanning_outdoor_check.Wait_condition = (Condition*)scanning_outdoor_condition;
-    approach_outdoor_check.Wait_condition = (Condition*)approach_outdoor_condition;
-    extinguish_outdoor_check.Wait_condition = (Condition*)extinguish_outdoor_condition;
-    return_to_base_check.Wait_condition = (Condition*)return_to_base_condition;
-    error_check.Wait_condition = (Condition*)error_condition;
-    finished_check.Wait_condition = (Condition*)finished_condition;
-
     //**********************************************
     FlightPipeline dumb_pipeline;
     FlightPipeline not_ready_pipeline, ready_to_start_pipeline, scanning_outdoor_pipeline;
@@ -245,7 +256,7 @@ int main(int argc, char** argv) {
     int duty = 2;
 
     //The Wait is needed because otherwise the set_initial_pose will capture only zeros
-    not_ready_pipeline.addElement((FlightElement*)&not_ready_check);
+    not_ready_pipeline.addElement((FlightElement*)not_ready_check);
     not_ready_pipeline.addElement((FlightElement*)&wait_1s);
     not_ready_pipeline.addElement((FlightElement*)set_initial_pose);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_x);
@@ -256,13 +267,14 @@ int main(int argc, char** argv) {
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw_rate);
     not_ready_pipeline.addElement((FlightElement*)flight_command);
-    //not_ready_pipeline.addElement((FlightElement*)cs_to_ready_to_start);
     
-    ready_to_start_pipeline.addElement((FlightElement*)&ready_to_start_check);
+    not_ready_pipeline.addElement((FlightElement*)cs_to_ready_to_start);
+    
+    ready_to_start_pipeline.addElement((FlightElement*)ready_to_start_check);
     ready_to_start_pipeline.addElement((FlightElement*)ref_z_on_takeoff);
     ready_to_start_pipeline.addElement((FlightElement*)reset_z);
     ready_to_start_pipeline.addElement((FlightElement*)arm_motors);
-    //ready_to_start_pipeline.addElement((FlightElement*)&z_cross_takeoff_waypoint_check);
+    //ready_to_start_pipeline.addElement((FlightElement*)z_cross_takeoff_waypoint_check);
     
     if(duty == 2){
         ready_to_start_pipeline.addElement((FlightElement*)cs_to_scanning_outdoor);
@@ -270,14 +282,14 @@ int main(int argc, char** argv) {
         ready_to_start_pipeline.addElement((FlightElement*)cs_to_approaching_outdoor);
     }
     
-    scanning_outdoor_pipeline.addElement((FlightElement*)&scanning_outdoor_check);
+    scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
     //scanning_outdoor_pipeline.addElement((FlightElement*)CHECK CONDITION FOR ALL DETECTED FIRES);
     scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
 
-    return_to_base_pipeline.addElement((FlightElement*)&return_to_base_check);
+    return_to_base_pipeline.addElement((FlightElement*)return_to_base_check);
     return_to_base_pipeline.addElement((FlightElement*)flight_command);
     return_to_base_pipeline.addElement((FlightElement*)ref_z_on_land);
-    //return_to_base_pipeline.addElement((FlightElement*)&z_cross_land_waypoint_check);
+    //return_to_base_pipeline.addElement((FlightElement*)z_cross_land_waypoint_check);
     return_to_base_pipeline.addElement((FlightElement*)&wait_1s);
     return_to_base_pipeline.addElement((FlightElement*)disarm_motors);
 

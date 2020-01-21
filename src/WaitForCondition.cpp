@@ -1,9 +1,12 @@
 #include "WaitForCondition.hpp"
 
+WaitForCondition::WaitForCondition(Condition* t_wait_condition){
+    m_wait_condition = t_wait_condition;
+}
 
 void WaitForCondition::perform(){
 
-while (!Wait_condition->isConditionMet())
+while (!m_wait_condition->isConditionMet())
 {
 
 }

@@ -2,21 +2,20 @@
 #include "Condition.hpp"
 #include "common_types.hpp"
 #include "IntegerMsg.hpp"
-#include "internal_states.hpp"
 
-class SystemStateCondition: public Condition {
+class ExternalSystemStateCondition: public Condition {
 
 private:
 	bool _isConditionMet = false;
-    internal_state m_check_state;
-    internal_state* m_actual_state;
-    
+    int m_desired_state;
+    int m_actual_state = -1;
+
 public:
 
     bool isConditionMet();
 
     void receive_msg_data(DataMessage* t_msg);
 
-    SystemStateCondition(internal_state*, internal_state);
+    ExternalSystemStateCondition(int);
 
 };
