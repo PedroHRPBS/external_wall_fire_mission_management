@@ -39,6 +39,7 @@
 #include "internal_states.hpp"
 #include "ChangeInternalState.hpp"
 #include "ExternalSystemStateCondition.hpp"
+#include "SendMessage.hpp"
 
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
     internal_state current_state = internal_state::NOT_READY;
     internal_state* current_state_ptr = &current_state;
 
+    
     //****************ROS Units********************
     ros::init(argc, argv, "ex_bldg_fire_mm_node");
     ros::NodeHandle nh;
@@ -92,6 +94,27 @@ int main(int argc, char** argv) {
     FlightElement* cs_to_return_to_base = new ChangeInternalState(current_state_ptr, internal_state::RETURNING_TO_BASE);
     FlightElement* cs_to_finished = new ChangeInternalState(current_state_ptr, internal_state::FINISHED);
     FlightElement* cs_to_error = new ChangeInternalState(current_state_ptr, internal_state::ERROR);
+
+    IntegerMsg ignoring_state;
+    ignoring_state.data = 1;
+    FlightElement* set_ignoring_state_outdoor_fire_detection = new SendMessage(ignoring_state);
+    
+    EmptyMsg uav_scan_path;
+    FlightElement* trigger_upload_uav_scan_path = new SendMessage(uav_scan_path);
+    
+    IntegerMsg scanning_state;
+    scanning_state.data = 2;
+    FlightElement* set_scanning_state_outdoor_fire_detection = new SendMessage(scanning_state);
+    
+    EmptyMsg uav_fire_path;
+    FlightElement* trigger_upload_uav_fire_path = new SendMessage(uav_fire_path);
+
+    IntegerMsg armed_extinguishing_state;
+    armed_extinguishing_state.data = 3;
+    FlightElement* set_arming_ext_state_fire_extinguishing = new SendMessage(armed_extinguishing_state);
+
+    EmptyMsg uav_home_path;
+    FlightElement* trigger_upload_uav_home_path = new SendMessage(uav_home_path);
 
     Wait wait_1s;
     wait_1s.wait_time_ms=1000;
@@ -290,22 +313,22 @@ int main(int argc, char** argv) {
     //Check Current Mission State
     ready_to_start_pipeline.addElement((FlightElement*)ready_to_start_check);
     //Call set_mission_state and set to Ignore
-    //TODO
+    ready_to_start_pipeline.addElement((FlightElement*)set_mission_state_outdoor_fire_detection);
     //Trigger Upload_UAV_Scan_Path
-    //TODO
+    ready_to_start_pipeline.addElement((FlightElement*)trigger_upload_uav_scan_path);
     //Check if UAV is at "Following Trajectory"
     ready_to_start_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Change internal state to SCANNING_OUTDOOR
     ready_to_start_pipeline.addElement((FlightElement*)cs_to_scanning_outdoor);
     //Call set_mission_state (Outdoor Fire Detection) and set to Scanning
-    //TODO
+    ready_to_start_pipeline.addElement((FlightElement*)set_scanning_state_outdoor_fire_detection);
     
     //Check Current Mission State
     scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
     //Check Outdoor Navigation is at "All wall fire detected"
     scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
     //Trigger Upload_UAV_Fire_Paths
-    //TODO
+    scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_fire_path);
     //Check if UAV is at "Following Trajectory"
     scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Change internal state to APPROACHING_OUTDOOR
@@ -316,7 +339,7 @@ int main(int argc, char** argv) {
     //Check if UAV is at "Hovering"
     approach_outdoor_pipeline.addElement((FlightElement*)uav_control_hovering_check);
     //Call set_mission_state (Fire Extinguishing) and set to Armed w/ Extinguishing
-    //TODO
+    approach_outdoor_pipeline.addElement((FlightElement*)set_arming_ext_state_fire_extinguishing);
     //Change internal state to EXTINGUISHING_OUTDOOR
     approach_outdoor_pipeline.addElement((FlightElement*)cs_to_extinguishing_outdoor);
 
@@ -325,7 +348,7 @@ int main(int argc, char** argv) {
     //Check if Fire Extinguished is at "Extinguished"
     extinguish_outdoor_pipeline.addElement((FlightElement*)water_fire_extinguishing_extinguished_check);
     //Trigger UAV to go home
-    //TODO
+    extinguish_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_home_path);
     //Check if UAV is at "Following Trajectory"
     extinguish_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Change internal state to RETURNING_TO_BASE

@@ -8,7 +8,7 @@ void WaitForCondition::perform(){
 
 while (!m_wait_condition->isConditionMet())
 {
-
+    sleep(0.1);
 }
 
 }
