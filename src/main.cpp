@@ -141,12 +141,24 @@ int main(int argc, char** argv) {
     ExternalSystemStateCondition* uav_control_landed = new ExternalSystemStateCondition(1); //UAV_CONTROL SYSTEM STATE: LANDED
     WaitForCondition* uav_control_landed_check = new WaitForCondition((Condition*)uav_control_landed);
     
+    ExternalSystemStateCondition* uav_control_following_trajectory = new ExternalSystemStateCondition(6); //UAV_CONTROL SYSTEM STATE: FOLLOWING TRAJECTORY
+    WaitForCondition* uav_control_following_trajectory_check = new WaitForCondition((Condition*)uav_control_following_trajectory);
+
+    ExternalSystemStateCondition* uav_control_hovering = new ExternalSystemStateCondition(7); //UAV_CONTROL SYSTEM STATE: HOVERING
+    WaitForCondition* uav_control_hovering_check = new WaitForCondition((Condition*)uav_control_hovering);
+
     ExternalSystemStateCondition* water_fire_extinguishing_idle = new ExternalSystemStateCondition(0); //WATER_FIRE_EXTINGUISING SYSTEM STATE: IDLE
     WaitForCondition* water_fire_extinguishing_idle_check = new WaitForCondition((Condition*)water_fire_extinguishing_idle);
+
+    ExternalSystemStateCondition* water_fire_extinguishing_extinguished = new ExternalSystemStateCondition(4); //WATER_FIRE_EXTINGUISING SYSTEM STATE: ARMED EXTINGUISHED
+    WaitForCondition* water_fire_extinguishing_extinguished_check = new WaitForCondition((Condition*)water_fire_extinguishing_extinguished);
     
     ExternalSystemStateCondition* outdoor_navigation_idle = new ExternalSystemStateCondition(0); //OUTDOOR_NAVIGATION SYSTEM STATE: IDLE
     WaitForCondition* outdoor_navigation_idle_check = new WaitForCondition((Condition*)outdoor_navigation_idle);
     
+    ExternalSystemStateCondition* outdoor_navigation_all_wall_fire = new ExternalSystemStateCondition(1); //OUTDOOR_NAVIGATION SYSTEM STATE: ALL WALL FIRES DETECTED
+    WaitForCondition* outdoor_navigation_all_wall_fire_check = new WaitForCondition((Condition*)outdoor_navigation_all_wall_fire);
+
     //******************Connections******************
 
     update_controller_pid_x->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
@@ -255,9 +267,10 @@ int main(int argc, char** argv) {
 
     int duty = 2;
 
-    //The Wait is needed because otherwise the set_initial_pose will capture only zeros
+    //Check Current Mission State
     not_ready_pipeline.addElement((FlightElement*)not_ready_check);
-    not_ready_pipeline.addElement((FlightElement*)&wait_1s);
+    //Initialise UAV position and controllers
+    not_ready_pipeline.addElement((FlightElement*)&wait_1s); //The Wait is needed because otherwise the set_initial_pose will capture only zeros
     not_ready_pipeline.addElement((FlightElement*)set_initial_pose);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_x);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_y);
@@ -266,32 +279,64 @@ int main(int argc, char** argv) {
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_pitch);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw);
     not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw_rate);
-    not_ready_pipeline.addElement((FlightElement*)flight_command);
-    
+    //Check if all systems are ready
+    not_ready_pipeline.addElement((FlightElement*)outdoor_wall_fire_detection_idle_check);
+    not_ready_pipeline.addElement((FlightElement*)uav_control_landed_check);
+    not_ready_pipeline.addElement((FlightElement*)water_fire_extinguishing_idle_check);
+    not_ready_pipeline.addElement((FlightElement*)outdoor_navigation_idle_check);
+    //Change internal state to READY_TO_START
     not_ready_pipeline.addElement((FlightElement*)cs_to_ready_to_start);
     
+    //Check Current Mission State
     ready_to_start_pipeline.addElement((FlightElement*)ready_to_start_check);
-    ready_to_start_pipeline.addElement((FlightElement*)ref_z_on_takeoff);
-    ready_to_start_pipeline.addElement((FlightElement*)reset_z);
-    ready_to_start_pipeline.addElement((FlightElement*)arm_motors);
-    //ready_to_start_pipeline.addElement((FlightElement*)z_cross_takeoff_waypoint_check);
+    //Call set_mission_state and set to Ignore
+    //TODO
+    //Trigger Upload_UAV_Scan_Path
+    //TODO
+    //Check if UAV is at "Following Trajectory"
+    ready_to_start_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    //Change internal state to SCANNING_OUTDOOR
+    ready_to_start_pipeline.addElement((FlightElement*)cs_to_scanning_outdoor);
+    //Call set_mission_state (Outdoor Fire Detection) and set to Scanning
+    //TODO
     
-    if(duty == 2){
-        ready_to_start_pipeline.addElement((FlightElement*)cs_to_scanning_outdoor);
-    }else if(duty == 3){
-        ready_to_start_pipeline.addElement((FlightElement*)cs_to_approaching_outdoor);
-    }
-    
+    //Check Current Mission State
     scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
-    //scanning_outdoor_pipeline.addElement((FlightElement*)CHECK CONDITION FOR ALL DETECTED FIRES);
-    scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
+    //Check Outdoor Navigation is at "All wall fire detected"
+    scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
+    //Trigger Upload_UAV_Fire_Paths
+    //TODO
+    //Check if UAV is at "Following Trajectory"
+    scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    //Change internal state to APPROACHING_OUTDOOR
+    scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_approaching_outdoor);
 
+    //Check Current Mission State
+    approach_outdoor_pipeline.addElement((FlightElement*)approach_outdoor_check);
+    //Check if UAV is at "Hovering"
+    approach_outdoor_pipeline.addElement((FlightElement*)uav_control_hovering_check);
+    //Call set_mission_state (Fire Extinguishing) and set to Armed w/ Extinguishing
+    //TODO
+    //Change internal state to EXTINGUISHING_OUTDOOR
+    approach_outdoor_pipeline.addElement((FlightElement*)cs_to_extinguishing_outdoor);
+
+    //Check Current Mission State
+    extinguish_outdoor_pipeline.addElement((FlightElement*)extinguish_outdoor_check);
+    //Check if Fire Extinguished is at "Extinguished"
+    extinguish_outdoor_pipeline.addElement((FlightElement*)water_fire_extinguishing_extinguished_check);
+    //Trigger UAV to go home
+    //TODO
+    //Check if UAV is at "Following Trajectory"
+    extinguish_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    //Change internal state to RETURNING_TO_BASE
+    extinguish_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
+
+    //Check Current Mission State
     return_to_base_pipeline.addElement((FlightElement*)return_to_base_check);
-    return_to_base_pipeline.addElement((FlightElement*)flight_command);
-    return_to_base_pipeline.addElement((FlightElement*)ref_z_on_land);
-    //return_to_base_pipeline.addElement((FlightElement*)z_cross_land_waypoint_check);
-    return_to_base_pipeline.addElement((FlightElement*)&wait_1s);
-    return_to_base_pipeline.addElement((FlightElement*)disarm_motors);
+    //Check if UAV is at "Landed"
+    return_to_base_pipeline.addElement((FlightElement*)uav_control_landed_check);
+    //Change internal state to FINISHED
+    return_to_base_pipeline.addElement((FlightElement*)cs_to_finished);
 
     FlightPipeline safety_pipeline;
 
@@ -309,3 +354,14 @@ int main(int argc, char** argv) {
         ros::spinOnce();
     }
 }
+
+    // ready_to_start_pipeline.addElement((FlightElement*)ref_z_on_takeoff);
+    // ready_to_start_pipeline.addElement((FlightElement*)reset_z);
+    // ready_to_start_pipeline.addElement((FlightElement*)arm_motors);
+    //ready_to_start_pipeline.addElement((FlightElement*)z_cross_takeoff_waypoint_check);
+
+     // return_to_base_pipeline.addElement((FlightElement*)flight_command);
+    // return_to_base_pipeline.addElement((FlightElement*)ref_z_on_land);
+    // //return_to_base_pipeline.addElement((FlightElement*)z_cross_land_waypoint_check);
+    // return_to_base_pipeline.addElement((FlightElement*)&wait_1s);
+    // return_to_base_pipeline.addElement((FlightElement*)disarm_motors);
