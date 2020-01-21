@@ -48,17 +48,6 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "ex_bldg_fire_mm_node");
     ros::NodeHandle nh;
 
-    ROSUnit* ros_arm_srv = new ROSUnit_Arm(nh);
-    ROSUnit* ros_updt_ctr = new ROSUnit_UpdateController(nh);
-    ROSUnit* ros_pos_sub = new ROSUnit_PositionSubscriber(nh);
-    ROSUnit* ros_ori_sub = new ROSUnit_OrientationSubscriber(nh);
-    ROSUnit* ros_rst_ctr = new ROSUnit_ResetController(nh);
-    ROSUnit* ros_updt_x_ref = new ROSUnit_UpdateReferenceX_FS(nh);
-    ROSUnit* ros_updt_y_ref = new ROSUnit_UpdateReferenceY_FS(nh);
-    ROSUnit* ros_updt_z_ref = new ROSUnit_UpdateReferenceZ_FS(nh);
-    ROSUnit* ros_updt_yaw_ref = new ROSUnit_UpdateReferenceYaw_FS(nh);
-    ROSUnit* ros_flight_command = new ROSUnit_FlightCommand(nh);
-
     ROSUnit_Factory ROSUnit_Factory_main{nh};
 	ROSUnit* ros_set_system_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/set_system_state");
 	ROSUnit* ros_updt_fire_detection_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_fire_detection_state");
@@ -74,26 +63,6 @@ int main(int argc, char** argv) {
     ROSUnit* set_fire_extinguishing_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/water_ext/set_mission_state");
     
     //*****************Flight Elements*************
-    //TODO send parameters of flightElements on the constructor.
-    FlightElement* update_controller_pid_x = new UpdateController();
-    FlightElement* update_controller_pid_y = new UpdateController();
-    FlightElement* update_controller_pid_z = new UpdateController();
-    FlightElement* update_controller_pid_roll = new UpdateController();
-    FlightElement* update_controller_pid_pitch = new UpdateController();
-    FlightElement* update_controller_pid_yaw = new UpdateController();
-    FlightElement* update_controller_pid_yaw_rate = new UpdateController();
-    
-    FlightElement* set_initial_pose = new SetInitialPose();
-    
-    FlightElement* reset_z = new ResetController();
-    
-    FlightElement* arm_motors = new Arm();
-    FlightElement* disarm_motors = new Disarm();
-
-    FlightElement* ref_z_on_takeoff = new SetReference_Z();
-    FlightElement* ref_z_on_land = new SetReference_Z();
-
-    FlightElement* flight_command = new FlightCommand();
 
     FlightElement* cs_to_not_ready = new ChangeInternalState(external_wall_fire_states::NOT_READY);
     FlightElement* cs_to_ready_to_start = new ChangeInternalState(external_wall_fire_states::READY_TO_START);
@@ -103,6 +72,7 @@ int main(int argc, char** argv) {
     FlightElement* cs_to_return_to_base = new ChangeInternalState(external_wall_fire_states::RETURNING_TO_BASE);
     FlightElement* cs_to_finished = new ChangeInternalState(external_wall_fire_states::FINISHED);
     FlightElement* cs_to_error = new ChangeInternalState(external_wall_fire_states::ERROR);
+
 
     IntegerMsg ignoring_state;
     ignoring_state.data = 1;
@@ -125,22 +95,6 @@ int main(int argc, char** argv) {
 
     EmptyMsg uav_home_path;
     FlightElement* trigger_upload_uav_home_path = new SendMessage((DataMessage*)&uav_home_path);
-
-    Wait wait_1s;
-    wait_1s.wait_time_ms=1000;
-
-    SimplePlaneCondition z_cross_takeoff_waypoint;
-    z_cross_takeoff_waypoint.selected_dim=Dimension3D::Z;
-    z_cross_takeoff_waypoint.condition_value = 1.4;
-    z_cross_takeoff_waypoint.condition_met_for_larger=true;
-    ros_pos_sub->add_callback_msg_receiver((msg_receiver*) &z_cross_takeoff_waypoint);
-    WaitForCondition* z_cross_takeoff_waypoint_check = new WaitForCondition((Condition*)&z_cross_takeoff_waypoint);
-
-    SimplePlaneCondition z_cross_land_waypoint;
-    z_cross_land_waypoint.selected_dim=Dimension3D::Z;
-    z_cross_land_waypoint.condition_value=0.2;
-    z_cross_land_waypoint.condition_met_for_larger=false;
-    WaitForCondition* z_cross_land_waypoint_check = new WaitForCondition((Condition*)&z_cross_land_waypoint);
 
 
     InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(external_wall_fire_states::NOT_READY);
@@ -167,7 +121,7 @@ int main(int argc, char** argv) {
     InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(external_wall_fire_states::FINISHED);
     WaitForCondition* finished_check = new WaitForCondition((Condition*)finished_condition);
 
-    //The int values passed on the following constructors, need to match the system states of the external systems.
+    //The int values passed on the following constructors need to match the system states of the external systems.
     ExternalSystemStateCondition* outdoor_wall_fire_detection_idle = new ExternalSystemStateCondition(0); //OUTDOOR_WALL_FIRE_DETECTION SYSTEM STATE: IDLE
     WaitForCondition* outdoor_wall_fire_detection_idle_check = new WaitForCondition((Condition*)outdoor_wall_fire_detection_idle);
     
@@ -193,32 +147,6 @@ int main(int argc, char** argv) {
     WaitForCondition* outdoor_navigation_all_wall_fire_check = new WaitForCondition((Condition*)outdoor_navigation_all_wall_fire);
 
     //******************Connections******************
-
-    update_controller_pid_x->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_y->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_z->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_roll->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_pitch->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_yaw->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-    update_controller_pid_yaw_rate->add_callback_msg_receiver((msg_receiver*) ros_updt_ctr);
-
-    ros_ori_sub->add_callback_msg_receiver((msg_receiver*) set_initial_pose);
-    ros_pos_sub->add_callback_msg_receiver((msg_receiver*) set_initial_pose);
-
-    set_initial_pose->add_callback_msg_receiver((msg_receiver*) ros_updt_x_ref);
-    set_initial_pose->add_callback_msg_receiver((msg_receiver*) ros_updt_y_ref);
-    set_initial_pose->add_callback_msg_receiver((msg_receiver*) ros_updt_z_ref);
-    set_initial_pose->add_callback_msg_receiver((msg_receiver*) ros_updt_yaw_ref);
-
-    reset_z->add_callback_msg_receiver((msg_receiver*) ros_rst_ctr);
-
-    arm_motors->add_callback_msg_receiver((msg_receiver*) ros_arm_srv);
-    disarm_motors->add_callback_msg_receiver((msg_receiver*) ros_arm_srv);
-
-    ref_z_on_takeoff->add_callback_msg_receiver((msg_receiver*)ros_updt_z_ref);
-    ref_z_on_land->add_callback_msg_receiver((msg_receiver*)ros_updt_z_ref);
-
-    ros_flight_command->add_callback_msg_receiver((msg_receiver*) flight_command);
 
     ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
     ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_ready_to_start);
@@ -249,89 +177,13 @@ int main(int argc, char** argv) {
     trigger_upload_uav_home_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_home_path_clnt);
 
 
-    //*************Setting Flight Elements*************
-
-    ((UpdateController*)update_controller_pid_x)->pid_data.kp = 0.8 * 0.3;
-    ((UpdateController*)update_controller_pid_x)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_x)->pid_data.kd = 0.6 * 0.3;
-    ((UpdateController*)update_controller_pid_x)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_x)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_x)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_x)->pid_data.id = block_id::PID_X;
-
-    ((UpdateController*)update_controller_pid_y)->pid_data.kp = 0.8 * 0.3;
-    ((UpdateController*)update_controller_pid_y)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_y)->pid_data.kd = 0.6 * 0.3;
-    ((UpdateController*)update_controller_pid_y)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_y)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_y)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_y)->pid_data.id = block_id::PID_Y;
-
-    ((UpdateController*)update_controller_pid_z)->pid_data.kp = 0.7450; 
-    ((UpdateController*)update_controller_pid_z)->pid_data.ki = 0.0980; 
-    ((UpdateController*)update_controller_pid_z)->pid_data.kd = 0.3956; 
-    ((UpdateController*)update_controller_pid_z)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_z)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_z)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_z)->pid_data.id = block_id::PID_Z;
-
-    ((UpdateController*)update_controller_pid_roll)->pid_data.kp = 0.1584; 
-    ((UpdateController*)update_controller_pid_roll)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_roll)->pid_data.kd = 0.0264; 
-    ((UpdateController*)update_controller_pid_roll)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_roll)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_roll)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_roll)->pid_data.id = block_id::PID_ROLL;
-
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.kp = 0.1584; 
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.kd = 0.0264;
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_pitch)->pid_data.id = block_id::PID_PITCH;
-
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.kp = 0.8;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.kd = 0.0;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_yaw)->pid_data.id = block_id::PID_YAW;
-
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.kp = 0.08;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.ki = 0.0;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.kd = 0.0;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.kdd = 0.0;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.anti_windup = 0;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.en_pv_derivation = 1;
-    ((UpdateController*)update_controller_pid_yaw_rate)->pid_data.id = block_id::PID_YAW_RATE;
-
-    ((ResetController*)reset_z)->target_block = block_id::PID_Z;
-
-    ((SetReference_Z*)ref_z_on_takeoff)->setpoint_z = 1.5;
-    ((SetReference_Z*)ref_z_on_land)->setpoint_z = 0.2;
-
     //**********************************************
-    FlightPipeline dumb_pipeline;
-    FlightPipeline not_ready_pipeline, ready_to_start_pipeline, scanning_outdoor_pipeline;
-    FlightPipeline approach_outdoor_pipeline, extinguish_outdoor_pipeline, return_to_base_pipeline;
-    FlightPipeline error_pipeline, finished_pipeline;
-
-    int duty = 2;
+    FlightPipeline not_ready_pipeline, ready_to_start_pipeline, scanning_outdoor_pipeline,
+                   approach_outdoor_pipeline, extinguish_outdoor_pipeline, return_to_base_pipeline,
+                   error_pipeline, finished_pipeline;
 
     //Check Current Mission State
     not_ready_pipeline.addElement((FlightElement*)not_ready_check);
-    //Initialise UAV position and controllers
-    not_ready_pipeline.addElement((FlightElement*)&wait_1s); //The Wait is needed because otherwise the set_initial_pose will capture only zeros
-    not_ready_pipeline.addElement((FlightElement*)set_initial_pose);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_x);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_y);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_z);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_roll);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_pitch);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw);
-    not_ready_pipeline.addElement((FlightElement*)update_controller_pid_yaw_rate);
     //Check if all systems are ready
     not_ready_pipeline.addElement((FlightElement*)outdoor_wall_fire_detection_idle_check);
     not_ready_pipeline.addElement((FlightElement*)uav_control_landed_check);
@@ -391,7 +243,7 @@ int main(int argc, char** argv) {
     //Change internal state to FINISHED
     return_to_base_pipeline.addElement((FlightElement*)cs_to_finished);
 
-    FlightPipeline safety_pipeline;
+    //TODO Error Pipeline
 
     Logger::getAssignedLogger()->log("FlightScenario main_scenario",LoggerLevel::Info);
     FlightScenario main_scenario;
@@ -401,7 +253,6 @@ int main(int argc, char** argv) {
     main_scenario.AddFlightPipeline(&approach_outdoor_pipeline);
     main_scenario.AddFlightPipeline(&extinguish_outdoor_pipeline);
     main_scenario.AddFlightPipeline(&return_to_base_pipeline);
-    main_scenario.AddFlightPipeline(&safety_pipeline);
     main_scenario.StartScenario();
     Logger::getAssignedLogger()->log("Main Done",LoggerLevel::Info);
     
@@ -409,14 +260,3 @@ int main(int argc, char** argv) {
         ros::spinOnce();
     }
 }
-
-    // ready_to_start_pipeline.addElement((FlightElement*)ref_z_on_takeoff);
-    // ready_to_start_pipeline.addElement((FlightElement*)reset_z);
-    // ready_to_start_pipeline.addElement((FlightElement*)arm_motors);
-    //ready_to_start_pipeline.addElement((FlightElement*)z_cross_takeoff_waypoint_check);
-
-     // return_to_base_pipeline.addElement((FlightElement*)flight_command);
-    // return_to_base_pipeline.addElement((FlightElement*)ref_z_on_land);
-    // //return_to_base_pipeline.addElement((FlightElement*)z_cross_land_waypoint_check);
-    // return_to_base_pipeline.addElement((FlightElement*)&wait_1s);
-    // return_to_base_pipeline.addElement((FlightElement*)disarm_motors);
