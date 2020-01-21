@@ -40,6 +40,7 @@
 #include "ChangeInternalState.hpp"
 #include "ExternalSystemStateCondition.hpp"
 #include "SendMessage.hpp"
+#include "EmptyMsg.hpp"
 
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
@@ -97,24 +98,24 @@ int main(int argc, char** argv) {
 
     IntegerMsg ignoring_state;
     ignoring_state.data = 1;
-    FlightElement* set_ignoring_state_outdoor_fire_detection = new SendMessage(ignoring_state);
+    FlightElement* set_ignoring_state_outdoor_fire_detection = new SendMessage((DataMessage*)&ignoring_state);
     
     EmptyMsg uav_scan_path;
-    FlightElement* trigger_upload_uav_scan_path = new SendMessage(uav_scan_path);
+    FlightElement* trigger_upload_uav_scan_path = new SendMessage((DataMessage*)&uav_scan_path);
     
     IntegerMsg scanning_state;
     scanning_state.data = 2;
-    FlightElement* set_scanning_state_outdoor_fire_detection = new SendMessage(scanning_state);
+    FlightElement* set_scanning_state_outdoor_fire_detection = new SendMessage((DataMessage*)&scanning_state);
     
     EmptyMsg uav_fire_path;
-    FlightElement* trigger_upload_uav_fire_path = new SendMessage(uav_fire_path);
+    FlightElement* trigger_upload_uav_fire_path = new SendMessage((DataMessage*)&uav_fire_path);
 
     IntegerMsg armed_extinguishing_state;
     armed_extinguishing_state.data = 3;
-    FlightElement* set_arming_ext_state_fire_extinguishing = new SendMessage(armed_extinguishing_state);
+    FlightElement* set_arming_ext_state_fire_extinguishing = new SendMessage((DataMessage*)&armed_extinguishing_state);
 
     EmptyMsg uav_home_path;
-    FlightElement* trigger_upload_uav_home_path = new SendMessage(uav_home_path);
+    FlightElement* trigger_upload_uav_home_path = new SendMessage((DataMessage*)&uav_home_path);
 
     Wait wait_1s;
     wait_1s.wait_time_ms=1000;
@@ -313,7 +314,7 @@ int main(int argc, char** argv) {
     //Check Current Mission State
     ready_to_start_pipeline.addElement((FlightElement*)ready_to_start_check);
     //Call set_mission_state and set to Ignore
-    ready_to_start_pipeline.addElement((FlightElement*)set_mission_state_outdoor_fire_detection);
+    ready_to_start_pipeline.addElement((FlightElement*)set_ignoring_state_outdoor_fire_detection);
     //Trigger Upload_UAV_Scan_Path
     ready_to_start_pipeline.addElement((FlightElement*)trigger_upload_uav_scan_path);
     //Check if UAV is at "Following Trajectory"
