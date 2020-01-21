@@ -1,6 +1,6 @@
 #pragma once
 #include "DataMessage.hpp"
-#include "common_types.hpp"
+#include "internal_states.hpp"
 
 class MsgExtWallFireState : public DataMessage{
 public:

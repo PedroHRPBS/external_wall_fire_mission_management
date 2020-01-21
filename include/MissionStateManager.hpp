@@ -1,7 +1,7 @@
 #pragma once
 #include "MsgEmitter.hpp"
 #include "MsgExtWallFireState.hpp"
-#include "common_types.hpp"
+#include "internal_states.hpp"
                                 
 class MissionStateManager : public msg_emitter
 {

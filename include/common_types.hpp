@@ -10,8 +10,7 @@ const struct tPacketProp{
 	uint8_t pad_EOP = 0xFF;
 }PacketProp;
 //TODO move msg_type to DataMessage.hpp
-enum class external_wall_fire_states {NOT_READY=0, ERROR=1, READY_TO_START=2, SCANNING_OUTDOOR=3, APPROACHING_OUTDOOR=4, 
-                                EXTINGUISHING_OUTDOOR=5, RETURNING_TO_BASE=6, FINISHED=7};
+
 enum class msg_type {TAGGEDPOSES, POSES, FLOAT, VECTOR, POSE, EMPTY, INTEGER, FLIGHTCOMMAND, SWITCHBLOCK, UPDATECONTROLLER, 
 					arm_update, RestControllerMessage, SwitchBlock,MessageToBlock,TESTMSG, SERIALDATA ,reference, 
 					THREEAXISSENSORMSG, VELOCITY, ACCELERATION, THERMALIMAGE, optitrack, FLIGHTSCENARIO, POSITION, 
