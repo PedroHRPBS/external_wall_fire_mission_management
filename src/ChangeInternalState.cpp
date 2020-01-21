@@ -11,6 +11,7 @@ ChangeInternalState::~ChangeInternalState() {
 
 void ChangeInternalState::perform() {
     *m_current_state_ptr = m_new_state;
+    std::cout << "Current state: " << (int)*m_current_state_ptr << std::endl;
 }
 
 void ChangeInternalState::receive_msg_data(DataMessage* t_msg){

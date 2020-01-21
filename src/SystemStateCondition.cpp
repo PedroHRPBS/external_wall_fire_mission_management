@@ -6,7 +6,7 @@ SystemStateCondition::SystemStateCondition(internal_state* t_actual_state, inter
 }
 
 bool SystemStateCondition::isConditionMet(){
-	return *m_actual_state == m_check_state;
+	return (*m_actual_state == m_check_state);
 }
 
 void SystemStateCondition::receive_msg_data(DataMessage* t_msg){
