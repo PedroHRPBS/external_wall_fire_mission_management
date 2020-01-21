@@ -1,7 +1,6 @@
 #include "ChangeInternalState.hpp"
 
-ChangeInternalState::ChangeInternalState(internal_state* t_current_state_ptr, internal_state t_new_state) {
-    m_current_state_ptr = t_current_state_ptr;
+ChangeInternalState::ChangeInternalState(external_wall_fire_states t_new_state) {
     m_new_state = t_new_state;
 }
 
@@ -10,8 +9,8 @@ ChangeInternalState::~ChangeInternalState() {
 }
 
 void ChangeInternalState::perform() {
-    *m_current_state_ptr = m_new_state;
-    std::cout << "Current state: " << (int)*m_current_state_ptr << std::endl;
+    MainMissionStateManager.updateMissionState(m_new_state);
+    std::cout << "Current state: " << (int)m_new_state << std::endl;
 }
 
 void ChangeInternalState::receive_msg_data(DataMessage* t_msg){
@@ -20,7 +19,7 @@ void ChangeInternalState::receive_msg_data(DataMessage* t_msg){
         IntegerMsg* int_msg = (IntegerMsg*)t_msg;
 
         if(int_msg->data == (int)m_new_state){
-            *m_current_state_ptr = static_cast<internal_state>(int_msg->data);
+            MainMissionStateManager.updateMissionState(static_cast<external_wall_fire_states>(int_msg->data));
         }
     }
 }

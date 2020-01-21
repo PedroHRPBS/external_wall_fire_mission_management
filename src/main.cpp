@@ -34,7 +34,6 @@
 #include "FlightCommand.hpp"
 #include "SetMissionState.hpp"
 #include "InternalSystemStateCondition.hpp"
-#include "internal_states.hpp"
 #include "ChangeInternalState.hpp"
 #include "ExternalSystemStateCondition.hpp"
 #include "SendMessage.hpp"
@@ -45,8 +44,6 @@
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
 
-    internal_state current_state = internal_state::NOT_READY;
-    internal_state* current_state_ptr = &current_state;
 
     //****************ROS Units********************
     ros::init(argc, argv, "ex_bldg_fire_mm_node");
@@ -99,14 +96,14 @@ int main(int argc, char** argv) {
 
     FlightElement* flight_command = new FlightCommand();
 
-    FlightElement* cs_to_not_ready = new ChangeInternalState(MainMissionStateManager, internal_state::NOT_READY);
-    FlightElement* cs_to_ready_to_start = new ChangeInternalState(MainMissionStateManager, internal_state::READY_TO_START);
-    FlightElement* cs_to_scanning_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::SCANNING_OUTDOOR);
-    FlightElement* cs_to_approaching_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::APPROACHING_OUTDOOR);
-    FlightElement* cs_to_extinguishing_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::EXTINGUISHING_OUTDOOR);
-    FlightElement* cs_to_return_to_base = new ChangeInternalState(MainMissionStateManager, internal_state::RETURNING_TO_BASE);
-    FlightElement* cs_to_finished = new ChangeInternalState(MainMissionStateManager, internal_state::FINISHED);
-    FlightElement* cs_to_error = new ChangeInternalState(MainMissionStateManager, internal_state::ERROR);
+    FlightElement* cs_to_not_ready = new ChangeInternalState(external_wall_fire_states::NOT_READY);
+    FlightElement* cs_to_ready_to_start = new ChangeInternalState(external_wall_fire_states::READY_TO_START);
+    FlightElement* cs_to_scanning_outdoor = new ChangeInternalState(external_wall_fire_states::SCANNING_OUTDOOR);
+    FlightElement* cs_to_approaching_outdoor = new ChangeInternalState(external_wall_fire_states::APPROACHING_OUTDOOR);
+    FlightElement* cs_to_extinguishing_outdoor = new ChangeInternalState(external_wall_fire_states::EXTINGUISHING_OUTDOOR);
+    FlightElement* cs_to_return_to_base = new ChangeInternalState(external_wall_fire_states::RETURNING_TO_BASE);
+    FlightElement* cs_to_finished = new ChangeInternalState(external_wall_fire_states::FINISHED);
+    FlightElement* cs_to_error = new ChangeInternalState(external_wall_fire_states::ERROR);
 
     IntegerMsg ignoring_state;
     ignoring_state.data = 1;
@@ -147,28 +144,28 @@ int main(int argc, char** argv) {
     WaitForCondition* z_cross_land_waypoint_check = new WaitForCondition((Condition*)&z_cross_land_waypoint);
 
 
-    InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::NOT_READY);
+    InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(external_wall_fire_states::NOT_READY);
     WaitForCondition* not_ready_check = new WaitForCondition((Condition*)not_ready_condition);
 
-    InternalSystemStateCondition* ready_to_start_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::READY_TO_START);
+    InternalSystemStateCondition* ready_to_start_condition = new InternalSystemStateCondition(external_wall_fire_states::READY_TO_START);
     WaitForCondition* ready_to_start_check = new WaitForCondition((Condition*)ready_to_start_condition);
 
-    InternalSystemStateCondition* scanning_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::SCANNING_OUTDOOR);
+    InternalSystemStateCondition* scanning_outdoor_condition = new InternalSystemStateCondition(external_wall_fire_states::SCANNING_OUTDOOR);
     WaitForCondition* scanning_outdoor_check = new WaitForCondition((Condition*)scanning_outdoor_condition);
 
-    InternalSystemStateCondition* approach_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::APPROACHING_OUTDOOR);
+    InternalSystemStateCondition* approach_outdoor_condition = new InternalSystemStateCondition(external_wall_fire_states::APPROACHING_OUTDOOR);
     WaitForCondition* approach_outdoor_check = new WaitForCondition((Condition*)approach_outdoor_condition);
 
-    InternalSystemStateCondition* extinguish_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::EXTINGUISHING_OUTDOOR);
+    InternalSystemStateCondition* extinguish_outdoor_condition = new InternalSystemStateCondition(external_wall_fire_states::EXTINGUISHING_OUTDOOR);
     WaitForCondition* extinguish_outdoor_check = new WaitForCondition((Condition*)extinguish_outdoor_condition);
 
-    InternalSystemStateCondition* return_to_base_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::RETURNING_TO_BASE);
+    InternalSystemStateCondition* return_to_base_condition = new InternalSystemStateCondition(external_wall_fire_states::RETURNING_TO_BASE);
     WaitForCondition* return_to_base_check = new WaitForCondition((Condition*)return_to_base_condition);
 
-    InternalSystemStateCondition* error_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::ERROR);
+    InternalSystemStateCondition* error_condition = new InternalSystemStateCondition(external_wall_fire_states::ERROR);
     WaitForCondition* error_check = new WaitForCondition((Condition*)error_condition);
 
-    InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::FINISHED);
+    InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(external_wall_fire_states::FINISHED);
     WaitForCondition* finished_check = new WaitForCondition((Condition*)finished_condition);
 
     //The int values passed on the following constructors, need to match the system states of the external systems.

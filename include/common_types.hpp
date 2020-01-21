@@ -10,11 +10,14 @@ const struct tPacketProp{
 	uint8_t pad_EOP = 0xFF;
 }PacketProp;
 //TODO move msg_type to DataMessage.hpp
+enum class external_wall_fire_states {NOT_READY=0, ERROR=1, READY_TO_START=2, SCANNING_OUTDOOR=3, APPROACHING_OUTDOOR=4, 
+                                EXTINGUISHING_OUTDOOR=5, RETURNING_TO_BASE=6, FINISHED=7};
 enum class msg_type {TAGGEDPOSES, POSES, FLOAT, VECTOR, POSE, EMPTY, INTEGER, FLIGHTCOMMAND, SWITCHBLOCK, UPDATECONTROLLER, 
 					arm_update, RestControllerMessage, SwitchBlock,MessageToBlock,TESTMSG, SERIALDATA ,reference, 
 					THREEAXISSENSORMSG, VELOCITY, ACCELERATION, THERMALIMAGE, optitrack, FLIGHTSCENARIO, POSITION, 
 					ATTITUDE, HEADING, NOZZLEMSG,control_system, USERREFERENCE, controller, float_msg, switcher, 
-					VECTOR3D, external_reference, ack,internal_msg_start,internal_ros,pid_data_update, POINTS };
+					VECTOR3D, external_reference, ack,internal_msg_start,internal_ros,pid_data_update, POINTS,
+					EXT_WALL_FIRE_STATE };
 enum class msg_type_optitrack {position, attitude};
 enum class msg_type_flight_scenario {USER, SET_PID};
 enum class control_system {roll=3, pitch=4, yaw=5, x=0, y=1, z=2, pitch_rate = 7, yaw_rate = 6, null_type};
