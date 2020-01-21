@@ -9,7 +9,7 @@
 class SetInitialPose : public FlightElement{
 
 private:
-	float _current_x, _current_y, _current_z, _current_yaw;
+	float _current_x, _current_y, _current_z, _current_yaw = 0;
 
 public:
 	block_id target_block;

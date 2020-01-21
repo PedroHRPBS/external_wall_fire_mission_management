@@ -32,8 +32,6 @@
 #include "SetReference_Yaw.hpp"
 #include "ROSUnit_FlightCommand.hpp"
 #include "FlightCommand.hpp"
-#include "ROSUnit_SetIntClnt.hpp"
-#include "ROSUnit_SetIntSrv.hpp"
 #include "SetMissionState.hpp"
 #include "InternalSystemStateCondition.hpp"
 #include "internal_states.hpp"
@@ -63,7 +61,7 @@ int main(int argc, char** argv) {
     ROSUnit* ros_updt_z_ref = new ROSUnit_UpdateReferenceZ_FS(nh);
     ROSUnit* ros_updt_yaw_ref = new ROSUnit_UpdateReferenceYaw_FS(nh);
     ROSUnit* ros_flight_command = new ROSUnit_FlightCommand(nh);
-    ROSUnit* ros_set_int_srv = new ROSUnit_SetIntSrv("/ex_bldg_fire_mm/set_system_state", nh);
+    //ROSUnit* ros_set_int_srv = new ROSUnit_SetIntSrv("/ex_bldg_fire_mm/set_system_state", nh);
 
     //*****************Flight Elements*************
     //TODO send parameters of flightElements on the constructor.
@@ -211,14 +209,14 @@ int main(int argc, char** argv) {
 
     ros_flight_command->add_callback_msg_receiver((msg_receiver*) flight_command);
 
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_ready_to_start);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_scanning_outdoor);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_approaching_outdoor);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_extinguishing_outdoor);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_return_to_base);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_finished);
-    ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_error);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_ready_to_start);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_scanning_outdoor);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_approaching_outdoor);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_extinguishing_outdoor);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_return_to_base);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_finished);
+    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_error);
 
     //*************Setting Flight Elements*************
 

@@ -14,6 +14,8 @@
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/flight_scenario/src/**",
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/external_wall_fire/include/**",
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/external_wall_fire/src/**",
+                "/home/pedrohrpbs/catkin_ws_NAVIO/src/common_srv/include/**",
+                "/home/pedrohrpbs/catkin_ws_NAVIO/src/common_srv/src/**",
                 "/usr/include/**"
             ],
             "name": "ROS",

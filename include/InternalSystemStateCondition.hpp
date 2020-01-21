@@ -1,7 +1,6 @@
 #pragma once
 #include "Condition.hpp"
 #include "common_types.hpp"
-#include "IntegerMsg.hpp"
 #include "internal_states.hpp"
 
 class InternalSystemStateCondition: public Condition {
