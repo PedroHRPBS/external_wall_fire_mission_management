@@ -20,7 +20,7 @@ void ROSUnit_SetIntClnt::receive_msg_data(DataMessage* t_msg)
         t_srv.request.data = t_vector->data;
         if(m_client.call(t_srv))
         {
-            //TODO: add success condition
+            ROS_INFO("INTEGER RECEIVED: %d", t_srv.request.data);
         }
         else
         {

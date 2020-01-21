@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   positioning_system
   common_srv
-  flight_scenario
+
 )
 
 # add_message_files(
@@ -32,7 +32,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs message_runtime positioning_system common_srv flight_scenario
+  CATKIN_DEPENDS roscpp std_msgs message_runtime positioning_system common_srv 
 )
 
 include_directories(

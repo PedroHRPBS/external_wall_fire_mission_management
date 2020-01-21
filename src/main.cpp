@@ -39,6 +39,8 @@
 #include "ExternalSystemStateCondition.hpp"
 #include "SendMessage.hpp"
 #include "EmptyMsg.hpp"
+#include "ROSUnit_Factory.hpp"
+#include "MissionStateManager.hpp"
 
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
@@ -46,7 +48,6 @@ int main(int argc, char** argv) {
     internal_state current_state = internal_state::NOT_READY;
     internal_state* current_state_ptr = &current_state;
 
-    
     //****************ROS Units********************
     ros::init(argc, argv, "ex_bldg_fire_mm_node");
     ros::NodeHandle nh;
@@ -61,8 +62,21 @@ int main(int argc, char** argv) {
     ROSUnit* ros_updt_z_ref = new ROSUnit_UpdateReferenceZ_FS(nh);
     ROSUnit* ros_updt_yaw_ref = new ROSUnit_UpdateReferenceYaw_FS(nh);
     ROSUnit* ros_flight_command = new ROSUnit_FlightCommand(nh);
-    //ROSUnit* ros_set_int_srv = new ROSUnit_SetIntSrv("/ex_bldg_fire_mm/set_system_state", nh);
 
+    ROSUnit_Factory ROSUnit_Factory_main{nh};
+	ROSUnit* ros_set_system_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/set_system_state");
+	ROSUnit* ros_updt_fire_detection_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_fire_detection_state");
+    ROSUnit* ros_updt_uav_control_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_uav_control_state");
+    ROSUnit* ros_updt_water_ext_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_water_ext_state");
+    ROSUnit* ros_updt_outdoor_nav_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_outdoor_nav_state");
+    ROSUnit* ros_updt_water_level_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_water_level");
+    
+    ROSUnit* ros_set_fire_detection_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/fire_detection/set_mission_state");
+    ROSUnit* ros_trigger_uav_scan_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "/outdoor_nav/upload_uav_scan_path");
+    ROSUnit* ros_trigger_uav_fire_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/outdoor_nav/upload_uav_fire_paths");
+    ROSUnit* ros_trigger_uav_home_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "/outdoor_nav/upload_uav_home_path");
+    ROSUnit* set_fire_extinguishing_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/water_ext/set_mission_state");
+    
     //*****************Flight Elements*************
     //TODO send parameters of flightElements on the constructor.
     FlightElement* update_controller_pid_x = new UpdateController();
@@ -85,14 +99,14 @@ int main(int argc, char** argv) {
 
     FlightElement* flight_command = new FlightCommand();
 
-    FlightElement* cs_to_not_ready = new ChangeInternalState(current_state_ptr, internal_state::NOT_READY);
-    FlightElement* cs_to_ready_to_start = new ChangeInternalState(current_state_ptr, internal_state::READY_TO_START);
-    FlightElement* cs_to_scanning_outdoor = new ChangeInternalState(current_state_ptr, internal_state::SCANNING_OUTDOOR);
-    FlightElement* cs_to_approaching_outdoor = new ChangeInternalState(current_state_ptr, internal_state::APPROACHING_OUTDOOR);
-    FlightElement* cs_to_extinguishing_outdoor = new ChangeInternalState(current_state_ptr, internal_state::EXTINGUISHING_OUTDOOR);
-    FlightElement* cs_to_return_to_base = new ChangeInternalState(current_state_ptr, internal_state::RETURNING_TO_BASE);
-    FlightElement* cs_to_finished = new ChangeInternalState(current_state_ptr, internal_state::FINISHED);
-    FlightElement* cs_to_error = new ChangeInternalState(current_state_ptr, internal_state::ERROR);
+    FlightElement* cs_to_not_ready = new ChangeInternalState(MainMissionStateManager, internal_state::NOT_READY);
+    FlightElement* cs_to_ready_to_start = new ChangeInternalState(MainMissionStateManager, internal_state::READY_TO_START);
+    FlightElement* cs_to_scanning_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::SCANNING_OUTDOOR);
+    FlightElement* cs_to_approaching_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::APPROACHING_OUTDOOR);
+    FlightElement* cs_to_extinguishing_outdoor = new ChangeInternalState(MainMissionStateManager, internal_state::EXTINGUISHING_OUTDOOR);
+    FlightElement* cs_to_return_to_base = new ChangeInternalState(MainMissionStateManager, internal_state::RETURNING_TO_BASE);
+    FlightElement* cs_to_finished = new ChangeInternalState(MainMissionStateManager, internal_state::FINISHED);
+    FlightElement* cs_to_error = new ChangeInternalState(MainMissionStateManager, internal_state::ERROR);
 
     IntegerMsg ignoring_state;
     ignoring_state.data = 1;
@@ -105,8 +119,9 @@ int main(int argc, char** argv) {
     scanning_state.data = 2;
     FlightElement* set_scanning_state_outdoor_fire_detection = new SendMessage((DataMessage*)&scanning_state);
     
-    EmptyMsg uav_fire_path;
-    FlightElement* trigger_upload_uav_fire_path = new SendMessage((DataMessage*)&uav_fire_path);
+    IntegerMsg uav_fire_tag;
+    uav_fire_tag.data = 0;
+    FlightElement* trigger_upload_uav_fire_path = new SendMessage((DataMessage*)&uav_fire_tag);
 
     IntegerMsg armed_extinguishing_state;
     armed_extinguishing_state.data = 3;
@@ -132,28 +147,28 @@ int main(int argc, char** argv) {
     WaitForCondition* z_cross_land_waypoint_check = new WaitForCondition((Condition*)&z_cross_land_waypoint);
 
 
-    InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::NOT_READY);
+    InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::NOT_READY);
     WaitForCondition* not_ready_check = new WaitForCondition((Condition*)not_ready_condition);
 
-    InternalSystemStateCondition* ready_to_start_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::READY_TO_START);
+    InternalSystemStateCondition* ready_to_start_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::READY_TO_START);
     WaitForCondition* ready_to_start_check = new WaitForCondition((Condition*)ready_to_start_condition);
 
-    InternalSystemStateCondition* scanning_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::SCANNING_OUTDOOR);
+    InternalSystemStateCondition* scanning_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::SCANNING_OUTDOOR);
     WaitForCondition* scanning_outdoor_check = new WaitForCondition((Condition*)scanning_outdoor_condition);
 
-    InternalSystemStateCondition* approach_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::APPROACHING_OUTDOOR);
+    InternalSystemStateCondition* approach_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::APPROACHING_OUTDOOR);
     WaitForCondition* approach_outdoor_check = new WaitForCondition((Condition*)approach_outdoor_condition);
 
-    InternalSystemStateCondition* extinguish_outdoor_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::EXTINGUISHING_OUTDOOR);
+    InternalSystemStateCondition* extinguish_outdoor_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::EXTINGUISHING_OUTDOOR);
     WaitForCondition* extinguish_outdoor_check = new WaitForCondition((Condition*)extinguish_outdoor_condition);
 
-    InternalSystemStateCondition* return_to_base_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::RETURNING_TO_BASE);
+    InternalSystemStateCondition* return_to_base_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::RETURNING_TO_BASE);
     WaitForCondition* return_to_base_check = new WaitForCondition((Condition*)return_to_base_condition);
 
-    InternalSystemStateCondition* error_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::ERROR);
+    InternalSystemStateCondition* error_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::ERROR);
     WaitForCondition* error_check = new WaitForCondition((Condition*)error_condition);
 
-    InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(current_state_ptr, internal_state::FINISHED);
+    InternalSystemStateCondition* finished_condition = new InternalSystemStateCondition(MainMissionStateManager, internal_state::FINISHED);
     WaitForCondition* finished_check = new WaitForCondition((Condition*)finished_condition);
 
     //The int values passed on the following constructors, need to match the system states of the external systems.
@@ -209,14 +224,34 @@ int main(int argc, char** argv) {
 
     ros_flight_command->add_callback_msg_receiver((msg_receiver*) flight_command);
 
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_ready_to_start);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_scanning_outdoor);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_approaching_outdoor);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_extinguishing_outdoor);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_return_to_base);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_finished);
-    // ros_set_int_srv->add_callback_msg_receiver((msg_receiver*)cs_to_error);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_ready_to_start);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_scanning_outdoor);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_approaching_outdoor);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_extinguishing_outdoor);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_return_to_base);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_finished);
+    ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_error);
+
+    ros_updt_fire_detection_state_srv->add_callback_msg_receiver((msg_receiver*)outdoor_wall_fire_detection_idle);
+
+    ros_updt_uav_control_state_srv->add_callback_msg_receiver((msg_receiver*)uav_control_landed);
+    ros_updt_uav_control_state_srv->add_callback_msg_receiver((msg_receiver*)uav_control_following_trajectory);
+    ros_updt_uav_control_state_srv->add_callback_msg_receiver((msg_receiver*)uav_control_hovering);
+
+    ros_updt_water_ext_state_srv->add_callback_msg_receiver((msg_receiver*)water_fire_extinguishing_idle);
+    ros_updt_water_ext_state_srv->add_callback_msg_receiver((msg_receiver*)water_fire_extinguishing_extinguished);
+
+    ros_updt_outdoor_nav_state_srv->add_callback_msg_receiver((msg_receiver*)outdoor_navigation_idle);
+    ros_updt_outdoor_nav_state_srv->add_callback_msg_receiver((msg_receiver*)outdoor_navigation_all_wall_fire);
+
+    set_ignoring_state_outdoor_fire_detection->add_callback_msg_receiver((msg_receiver*)ros_set_fire_detection_state_clnt);
+    trigger_upload_uav_scan_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_scan_path_clnt);
+    set_scanning_state_outdoor_fire_detection->add_callback_msg_receiver((msg_receiver*)ros_set_fire_detection_state_clnt);
+    trigger_upload_uav_fire_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_fire_path_clnt);
+    set_arming_ext_state_fire_extinguishing->add_callback_msg_receiver((msg_receiver*)set_fire_extinguishing_state_clnt);
+    trigger_upload_uav_home_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_home_path_clnt);
+
 
     //*************Setting Flight Elements*************
 
@@ -367,6 +402,8 @@ int main(int argc, char** argv) {
     main_scenario.AddFlightPipeline(&not_ready_pipeline);
     main_scenario.AddFlightPipeline(&ready_to_start_pipeline);
     main_scenario.AddFlightPipeline(&scanning_outdoor_pipeline);
+    main_scenario.AddFlightPipeline(&approach_outdoor_pipeline);
+    main_scenario.AddFlightPipeline(&extinguish_outdoor_pipeline);
     main_scenario.AddFlightPipeline(&return_to_base_pipeline);
     main_scenario.AddFlightPipeline(&safety_pipeline);
     main_scenario.StartScenario();

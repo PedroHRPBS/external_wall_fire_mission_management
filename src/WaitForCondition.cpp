@@ -6,10 +6,12 @@ WaitForCondition::WaitForCondition(Condition* t_wait_condition){
 
 void WaitForCondition::perform(){
 
-while (!m_wait_condition->isConditionMet())
-{
-    sleep(0.1);
+    while (!m_wait_condition->isConditionMet())
+    {
+        sleep(1);
+    }
+    std::cout<< "CONDITION MATCHED" << std::endl;
 }
-
+void WaitForCondition::receive_msg_data(DataMessage* t_msg){
+    
 }
-void WaitForCondition::receive_msg_data(DataMessage* t_msg){}
