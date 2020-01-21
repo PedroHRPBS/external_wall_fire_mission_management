@@ -1,4 +1,5 @@
 #include "SetMissionState.hpp"
+#include <iostream>
 
 SetMissionState::SetMissionState() {
 
