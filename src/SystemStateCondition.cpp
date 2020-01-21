@@ -1,17 +1,15 @@
 #include "SystemStateCondition.hpp"
 
+SystemStateCondition::SystemStateCondition(internal_state* t_actual_state, internal_state t_check_state){
+    m_check_state = t_check_state;
+    m_actual_state = t_actual_state;
+}
+
 bool SystemStateCondition::isConditionMet(){
-	return _isConditionMet;
+	return *m_actual_state == m_check_state;
 }
 
 void SystemStateCondition::receive_msg_data(DataMessage* t_msg){
 
-	if(t_msg->getType() == msg_type::INTEGER){
-        IntegerMsg* int_msg = (IntegerMsg*)t_msg;
-
-        if(int_msg->data == state){
-            _isConditionMet = true;
-        }
-    }
 }
     

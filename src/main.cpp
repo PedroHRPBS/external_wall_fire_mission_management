@@ -133,23 +133,14 @@ int main(int argc, char** argv) {
     WaitForCondition approach_outdoor_check, extinguish_outdoor_check, return_to_base_check;
     WaitForCondition error_check, finished_check;
 
-    SystemStateCondition not_ready_condition;
-    not_ready_condition.state = 0;
-    SystemStateCondition ready_to_start_condition;
-    ready_to_start_condition.state = 1;
-    SystemStateCondition scanning_outdoor_condition;
-    scanning_outdoor_condition.state = 2;
-    SystemStateCondition approach_outdoor_condition;
-    approach_outdoor_condition.state = 3;
-    SystemStateCondition extinguish_outdoor_condition;
-    extinguish_outdoor_condition.state = 4;
-    SystemStateCondition return_to_base_condition;
-    return_to_base_condition.state = 5;
-    SystemStateCondition error_condition;
-    error_condition.state = 6;
-    SystemStateCondition finished_condition;
-    finished_condition.state = 7;
-
+    SystemStateCondition* not_ready_condition = new SystemStateCondition(current_state, internal_state::NOT_READY);
+    SystemStateCondition* ready_to_start_condition = new SystemStateCondition(current_state, internal_state::READY_TO_START);
+    SystemStateCondition* scanning_outdoor_condition = new SystemStateCondition(current_state, internal_state::SCANNING_OUTDOOR);
+    SystemStateCondition* approach_outdoor_condition = new SystemStateCondition(current_state, internal_state::APPROACHING_OUTDOOR);
+    SystemStateCondition* extinguish_outdoor_condition = new SystemStateCondition(current_state, internal_state::EXTINGUISHING_OUTDOOR);
+    SystemStateCondition* return_to_base_condition = new SystemStateCondition(current_state, internal_state::RETURNING_TO_BASE);
+    SystemStateCondition* error_condition = new SystemStateCondition(current_state, internal_state::ERROR);
+    SystemStateCondition* finished_condition = new SystemStateCondition(current_state, internal_state::FINISHED);
 
     //******************Connections******************
 
