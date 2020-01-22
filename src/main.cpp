@@ -61,7 +61,8 @@ int main(int argc, char** argv) {
     ROSUnit* ros_trigger_uav_fire_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/outdoor_nav/upload_uav_fire_paths");
     ROSUnit* ros_trigger_uav_home_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "/outdoor_nav/upload_uav_home_path");
     ROSUnit* set_fire_extinguishing_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/water_ext/set_mission_state");
-    
+    ROSUnit* ros_set_mission_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/uav_control/set_mission_state");
+
     //*****************Flight Elements*************
 
     FlightElement* cs_to_not_ready = new ChangeInternalState(external_wall_fire_states::NOT_READY);
@@ -95,6 +96,14 @@ int main(int argc, char** argv) {
 
     EmptyMsg uav_home_path;
     FlightElement* trigger_upload_uav_home_path = new SendMessage((DataMessage*)&uav_home_path);
+
+    IntegerMsg taking_off_state;
+    taking_off_state.data = 4;
+    FlightElement* set_taking_off_state_uav_control = new SendMessage((DataMessage*)&taking_off_state);
+
+    IntegerMsg landing_state;
+    landing_state.data = 5;
+    FlightElement* set_landing_state_uav_control = new SendMessage((DataMessage*)&landing_state);
 
 
     InternalSystemStateCondition* not_ready_condition = new InternalSystemStateCondition(external_wall_fire_states::NOT_READY);
@@ -175,8 +184,9 @@ int main(int argc, char** argv) {
     trigger_upload_uav_fire_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_fire_path_clnt);
     set_arming_ext_state_fire_extinguishing->add_callback_msg_receiver((msg_receiver*)set_fire_extinguishing_state_clnt);
     trigger_upload_uav_home_path->add_callback_msg_receiver((msg_receiver*)ros_trigger_uav_home_path_clnt);
-
-
+    set_taking_off_state_uav_control->add_callback_msg_receiver((msg_receiver*)ros_set_mission_state_clnt);
+    set_landing_state_uav_control->add_callback_msg_receiver((msg_receiver*)ros_set_mission_state_clnt);
+    
     //**********************************************
     FlightPipeline not_ready_pipeline, ready_to_start_pipeline, scanning_outdoor_pipeline,
                    approach_outdoor_pipeline, extinguish_outdoor_pipeline, return_to_base_pipeline,
@@ -194,8 +204,10 @@ int main(int argc, char** argv) {
     
     //Check Current Mission State
     ready_to_start_pipeline.addElement((FlightElement*)ready_to_start_check);
-    //Call set_mission_state and set to Ignore
+    //Call set_mission_state (Outdoor Fire Detection) and set to Ignore
     ready_to_start_pipeline.addElement((FlightElement*)set_ignoring_state_outdoor_fire_detection);
+    //Call set_mission_state (UAV_Control) and set to Taking_Off
+    ready_to_start_pipeline.addElement((FlightElement*)set_taking_off_state_uav_control);
     //Trigger Upload_UAV_Scan_Path
     ready_to_start_pipeline.addElement((FlightElement*)trigger_upload_uav_scan_path);
     //Check if UAV is at "Following Trajectory"
@@ -209,7 +221,7 @@ int main(int argc, char** argv) {
     scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
     //Check Outdoor Navigation is at "All wall fire detected"
     scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
-    //Trigger Upload_UAV_Fire_Paths
+    //Trigger Upload_UAV_Fire_Paths with a fire tag
     scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_fire_path);
     //Check if UAV is at "Following Trajectory"
     scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
@@ -238,8 +250,10 @@ int main(int argc, char** argv) {
 
     //Check Current Mission State
     return_to_base_pipeline.addElement((FlightElement*)return_to_base_check);
-    //Check if UAV is at "Landed"
-    return_to_base_pipeline.addElement((FlightElement*)uav_control_landed_check);
+    //Check if UAV is at "Hovering"
+    return_to_base_pipeline.addElement((FlightElement*)uav_control_hovering_check);
+    //Call set_mission_state (UAV_Control) and set to Landing
+    return_to_base_pipeline.addElement((FlightElement*)set_landing_state_uav_control);
     //Change internal state to FINISHED
     return_to_base_pipeline.addElement((FlightElement*)cs_to_finished);
 
