@@ -1,4 +1,4 @@
- #include "ros/ros.h"
+#include "ros/ros.h"
 #include <iostream>
 #include "ROSUnit.hpp"
 #include "logger.hpp"
@@ -6,32 +6,8 @@
 #include "FlightElement.hpp"
 #include "Wait.hpp"
 #include "WaitForCondition.hpp"
-#include "Arm.hpp"
 #include "FlightPipeline.hpp"
-#include "SimplePlaneCondition.hpp"
-#include "Disarm.hpp"
 #include "FlightScenario.hpp"
-#include "UpdateController.hpp"
-#include "SetInitialPose.hpp"
-#include "ResetController.hpp"
-#include "SwitchBlock.hpp"
-#include "ROSUnit_Arm.hpp"
-#include "ROSUnit_UpdateController.hpp"
-#include "ROSUnit_UpdatePoseReference.hpp"
-#include "ROSUnit_PositionSubscriber.hpp"
-#include "ROSUnit_ResetController.hpp"
-#include "ROSUnit_SwitchBlock.hpp"
-#include "ROSUnit_OrientationSubscriber.hpp"
-#include "ROSUnit_UpdateReferenceX_FS.hpp"
-#include "ROSUnit_UpdateReferenceY_FS.hpp"
-#include "ROSUnit_UpdateReferenceZ_FS.hpp"
-#include "ROSUnit_UpdateReferenceYaw_FS.hpp"
-#include "SetReference_X.hpp"
-#include "SetReference_Y.hpp"
-#include "SetReference_Z.hpp"
-#include "SetReference_Yaw.hpp"
-#include "ROSUnit_FlightCommand.hpp"
-#include "FlightCommand.hpp"
 #include "SetMissionState.hpp"
 #include "InternalSystemStateCondition.hpp"
 #include "ChangeInternalState.hpp"
@@ -73,7 +49,6 @@ int main(int argc, char** argv) {
     FlightElement* cs_to_return_to_base = new ChangeInternalState(external_wall_fire_states::RETURNING_TO_BASE);
     FlightElement* cs_to_finished = new ChangeInternalState(external_wall_fire_states::FINISHED);
     FlightElement* cs_to_error = new ChangeInternalState(external_wall_fire_states::ERROR);
-
 
     IntegerMsg ignoring_state;
     ignoring_state.data = 1;
