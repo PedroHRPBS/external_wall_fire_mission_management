@@ -25,19 +25,19 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     ROSUnit_Factory ROSUnit_Factory_main{nh};
-	ROSUnit* ros_set_system_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/set_system_state");
-	ROSUnit* ros_updt_fire_detection_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_fire_detection_state");
-    ROSUnit* ros_updt_uav_control_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_uav_control_state");
-    ROSUnit* ros_updt_water_ext_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_water_ext_state");
-    ROSUnit* ros_updt_outdoor_nav_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_outdoor_nav_state");
-    ROSUnit* ros_updt_water_level_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "/ex_bldg_fire_mm/update_water_level");
+	ROSUnit* ros_set_system_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/set_system_state");
+	ROSUnit* ros_updt_fire_detection_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/update_fire_detection_state");
+    ROSUnit* ros_updt_uav_control_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/update_uav_control_state");
+    ROSUnit* ros_updt_water_ext_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/update_water_ext_state");
+    ROSUnit* ros_updt_outdoor_nav_state_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/update_outdoor_nav_state");
+    ROSUnit* ros_updt_water_level_srv = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Server_Publisher, ROSUnit_msg_type::ROSUnit_Int, "ex_bldg_fire_mm/update_water_level");
     
-    ROSUnit* ros_set_fire_detection_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/fire_detection/set_mission_state");
-    ROSUnit* ros_trigger_uav_scan_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "/outdoor_nav/upload_uav_scan_path");
-    ROSUnit* ros_trigger_uav_fire_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/outdoor_nav/upload_uav_fire_paths");
-    ROSUnit* ros_trigger_uav_home_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "/outdoor_nav/upload_uav_home_path");
-    ROSUnit* set_fire_extinguishing_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/water_ext/set_mission_state");
-    ROSUnit* ros_set_mission_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "/uav_control/set_mission_state");
+    ROSUnit* ros_set_fire_detection_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "fire_detection/set_mission_state");
+    ROSUnit* ros_trigger_uav_scan_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "outdoor_navigation/upload_uav_scan_path");
+    ROSUnit* ros_trigger_uav_fire_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "outdoor_navigation/upload_uav_fire_paths");
+    ROSUnit* ros_trigger_uav_home_path_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Empty, "outdoor_nav/upload_uav_landing_path");
+    ROSUnit* set_fire_extinguishing_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "water_ext/set_mission_state");
+    ROSUnit* ros_set_mission_state_clnt = ROSUnit_Factory_main.CreateROSUnit(ROSUnit_tx_rx_type::Client_Subscriber, ROSUnit_msg_type::ROSUnit_Int, "uav_control/set_mission_state");
 
     //*****************Flight Elements*************
 
@@ -130,6 +130,9 @@ int main(int argc, char** argv) {
     ExternalSystemStateCondition* outdoor_navigation_all_wall_fire = new ExternalSystemStateCondition(1); //OUTDOOR_NAVIGATION SYSTEM STATE: ALL WALL FIRES DETECTED
     WaitForCondition* outdoor_navigation_all_wall_fire_check = new WaitForCondition((Condition*)outdoor_navigation_all_wall_fire);
 
+    Wait wait5s;
+    wait5s.wait_time_ms = 5000;
+
     //******************Connections******************
 
     ros_set_system_state_srv->add_callback_msg_receiver((msg_receiver*)cs_to_not_ready);
@@ -170,10 +173,10 @@ int main(int argc, char** argv) {
     //Check Current Mission State
     not_ready_pipeline.addElement((FlightElement*)not_ready_check);
     //Check if all systems are ready
-    not_ready_pipeline.addElement((FlightElement*)outdoor_wall_fire_detection_idle_check);
+    //not_ready_pipeline.addElement((FlightElement*)outdoor_wall_fire_detection_idle_check);
     not_ready_pipeline.addElement((FlightElement*)uav_control_landed_check);
-    not_ready_pipeline.addElement((FlightElement*)water_fire_extinguishing_idle_check);
-    not_ready_pipeline.addElement((FlightElement*)outdoor_navigation_idle_check);
+    //not_ready_pipeline.addElement((FlightElement*)water_fire_extinguishing_idle_check);
+    //not_ready_pipeline.addElement((FlightElement*)outdoor_navigation_idle_check); //No need to check this state
     //Change internal state to READY_TO_START
     not_ready_pipeline.addElement((FlightElement*)cs_to_ready_to_start);
     
@@ -182,11 +185,11 @@ int main(int argc, char** argv) {
     //Call set_mission_state (Outdoor Fire Detection) and set to Ignore
     ready_to_start_pipeline.addElement((FlightElement*)set_ignoring_state_outdoor_fire_detection);
     //Call set_mission_state (UAV_Control) and set to Taking_Off
-    ready_to_start_pipeline.addElement((FlightElement*)set_taking_off_state_uav_control);
+    ready_to_start_pipeline.addElement((FlightElement*)set_taking_off_state_uav_control); 
     //Trigger Upload_UAV_Scan_Path
     ready_to_start_pipeline.addElement((FlightElement*)trigger_upload_uav_scan_path);
     //Check if UAV is at "Following Trajectory"
-    ready_to_start_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    // ready_to_start_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Change internal state to SCANNING_OUTDOOR
     ready_to_start_pipeline.addElement((FlightElement*)cs_to_scanning_outdoor);
     //Call set_mission_state (Outdoor Fire Detection) and set to Scanning
@@ -195,33 +198,41 @@ int main(int argc, char** argv) {
     //Check Current Mission State
     scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
     //Check Outdoor Navigation is at "All wall fire detected"
-    scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
+    //scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
     //Trigger Upload_UAV_Fire_Paths with a fire tag
-    scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_fire_path);
+    // scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_fire_path);
     //Check if UAV is at "Following Trajectory"
-    scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
-    //Change internal state to APPROACHING_OUTDOOR
-    scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_approaching_outdoor);
-
-    //Check Current Mission State
-    approach_outdoor_pipeline.addElement((FlightElement*)approach_outdoor_check);
+    // scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Check if UAV is at "Hovering"
-    approach_outdoor_pipeline.addElement((FlightElement*)uav_control_hovering_check);
-    //Call set_mission_state (Fire Extinguishing) and set to Armed w/ Extinguishing
-    approach_outdoor_pipeline.addElement((FlightElement*)set_arming_ext_state_fire_extinguishing);
-    //Change internal state to EXTINGUISHING_OUTDOOR
-    approach_outdoor_pipeline.addElement((FlightElement*)cs_to_extinguishing_outdoor);
-
-    //Check Current Mission State
-    extinguish_outdoor_pipeline.addElement((FlightElement*)extinguish_outdoor_check);
-    //Check if Fire Extinguished is at "Extinguished"
-    extinguish_outdoor_pipeline.addElement((FlightElement*)water_fire_extinguishing_extinguished_check);
+    scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_hovering_check); 
+    //Wait 5s
+    scanning_outdoor_pipeline.addElement((FlightElement*)&wait5s); 
     //Trigger UAV to go home
-    extinguish_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_home_path);
-    //Check if UAV is at "Following Trajectory"
-    extinguish_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_home_path);
     //Change internal state to RETURNING_TO_BASE
-    extinguish_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
+    scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
+    //Change internal state to APPROACHING_OUTDOOR
+    //scanning_outdoor_pipeline.addElement((FlightElement*)cs_to_approaching_outdoor);
+
+    // //Check Current Mission State
+    // approach_outdoor_pipeline.addElement((FlightElement*)approach_outdoor_check);
+    // //Check if UAV is at "Hovering"
+    // approach_outdoor_pipeline.addElement((FlightElement*)uav_control_hovering_check); 
+    // //Call set_mission_state (Fire Extinguishing) and set to Armed w/ Extinguishing
+    // approach_outdoor_pipeline.addElement((FlightElement*)set_arming_ext_state_fire_extinguishing);
+    // //Change internal state to EXTINGUISHING_OUTDOOR
+    // approach_outdoor_pipeline.addElement((FlightElement*)cs_to_extinguishing_outdoor);
+
+    // //Check Current Mission State
+    // extinguish_outdoor_pipeline.addElement((FlightElement*)extinguish_outdoor_check);
+    // //Check if Fire Extinguished is at "Extinguished"
+    // extinguish_outdoor_pipeline.addElement((FlightElement*)water_fire_extinguishing_extinguished_check);
+    // //Trigger UAV to go home
+    // extinguish_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_home_path);
+    // //Check if UAV is at "Following Trajectory"
+    // extinguish_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
+    // //Change internal state to RETURNING_TO_BASE
+    // extinguish_outdoor_pipeline.addElement((FlightElement*)cs_to_return_to_base);
 
     //Check Current Mission State
     return_to_base_pipeline.addElement((FlightElement*)return_to_base_check);
