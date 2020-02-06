@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     FlightElement* set_scanning_state_outdoor_fire_detection = new SendMessage((DataMessage*)&scanning_state);
     
     IntegerMsg uav_fire_tag;
-    uav_fire_tag.data = 2;
+    uav_fire_tag.data = 0;
     FlightElement* trigger_upload_uav_fire_path = new SendMessage((DataMessage*)&uav_fire_tag);
 
     IntegerMsg armed_extinguishing_state;
