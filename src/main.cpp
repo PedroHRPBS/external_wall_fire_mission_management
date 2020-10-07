@@ -17,6 +17,8 @@
 #include "ROSUnit_Factory.hpp"
 #include "MissionStateManager.hpp"
 
+#undef TEST_WITH_FIRE_DETECTION
+
 int main(int argc, char** argv) {
     Logger::assignLogger(new StdLogger());
 
@@ -197,10 +199,12 @@ int main(int argc, char** argv) {
     
     //Check Current Mission State
     scanning_outdoor_pipeline.addElement((FlightElement*)scanning_outdoor_check);
+    #ifdef TEST_WITH_FIRE_DETECTION
     //Check Outdoor Navigation is at "All wall fire detected"
     scanning_outdoor_pipeline.addElement((FlightElement*)outdoor_navigation_all_wall_fire_check);
     //Trigger Upload_UAV_Fire_Paths with a fire tag
     scanning_outdoor_pipeline.addElement((FlightElement*)trigger_upload_uav_fire_path);
+    #endif
     //Check if UAV is at "Following Trajectory"
     scanning_outdoor_pipeline.addElement((FlightElement*)uav_control_following_trajectory_check);
     //Check if UAV is at "Hovering"

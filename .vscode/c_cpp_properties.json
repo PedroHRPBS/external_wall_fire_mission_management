@@ -9,7 +9,7 @@
                 "/opt/ros/kinetic/include/**",
                 "/home/pedrohrpbs/catkin_ws/src/kuri_mbzirc_offboard_control/include/**",
                 "/home/pedrohrpbs/catkin_ws/src/mocap_optitrack/include/**",
-                "/home/pedrohrpbs/catkin_ws_NAVIO/src/positioning_system/include/**",
+                "/home/pedrohrpbs/catkin_ws_NAVIO/src/flight_controller/include/**",
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/flight_scenario/include/**",
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/flight_scenario/src/**",
                 "/home/pedrohrpbs/catkin_ws_NAVIO/src/external_wall_fire/include/**",

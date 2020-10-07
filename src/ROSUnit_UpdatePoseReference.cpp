@@ -2,7 +2,7 @@
 
 ROSUnit_UpdatePoseReference::ROSUnit_UpdatePoseReference(ros::NodeHandle& t_main_handler) : ROSUnit(t_main_handler){
 
-    _setpoint_position_client = t_main_handler.serviceClient<positioning_system::Update_Pose_Reference>("update_pose_reference");
+    _setpoint_position_client = t_main_handler.serviceClient<flight_controller::Update_Pose_Reference>("update_pose_reference");
 }
 
 ROSUnit_UpdatePoseReference::~ROSUnit_UpdatePoseReference() {
@@ -15,7 +15,7 @@ void ROSUnit_UpdatePoseReference::receive_msg_data(DataMessage* t_msg){
 
         UpdatePoseMessage_FS* ref_msg = (UpdatePoseMessage_FS*)t_msg;
 
-        positioning_system::Update_Pose_Reference srv;
+        flight_controller::Update_Pose_Reference srv;
         srv.request.setpoint_pose.x = ref_msg->getX();
         srv.request.setpoint_pose.y = ref_msg->getY();
         srv.request.setpoint_pose.z = ref_msg->getZ();

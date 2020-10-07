@@ -2,7 +2,7 @@
 
 ROSUnit_ResetController::ROSUnit_ResetController(ros::NodeHandle& t_main_handler) : ROSUnit(t_main_handler){
 
-    _reset_controller_client = t_main_handler.serviceClient<positioning_system::Reset_Controller>("reset_controller");
+    _reset_controller_client = t_main_handler.serviceClient<flight_controller::Reset_Controller>("reset_controller");
 
 }
 
@@ -16,7 +16,7 @@ void ROSUnit_ResetController::receive_msg_data(DataMessage* t_msg){
 
         ResetControllerMessage* _reset_msg = (ResetControllerMessage*)t_msg;
         
-        positioning_system::Reset_Controller srv;
+        flight_controller::Reset_Controller srv;
 
         MessageToBlock* _msg_block = (MessageToBlock*)_reset_msg;
 

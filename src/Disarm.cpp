@@ -3,7 +3,7 @@
 
 // Disarm::Disarm(ros::NodeHandle& t_main_handler) : FlightElement(t_main_handler){
 
-//     _disarm_client = t_main_handler.serviceClient<positioning_system::Arm>("arm");
+//     _disarm_client = t_main_handler.serviceClient<flight_controller::Arm>("arm");
 
 // }
 Disarm::Disarm(){

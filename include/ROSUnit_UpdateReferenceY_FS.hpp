@@ -1,7 +1,7 @@
 #pragma once
 #include "ROSUnit.hpp"
-#include "positioning_system/Waypoint.h"
-#include <positioning_system/Update_Y_Reference.h>
+#include "flight_controller/Waypoint.h"
+#include <flight_controller/Update_Y_Reference.h>
 #include "UpdatePoseMessage_FS.hpp"
 #include "MessageToBlock.hpp"
 

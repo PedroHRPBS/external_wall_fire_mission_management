@@ -1,7 +1,7 @@
 #pragma once
 #include "FlightElement.hpp"
 #include "ArmDataMessage.hpp"
-#include "positioning_system/Arm.h"
+#include "flight_controller/Arm.h"
 
 class Disarm : public FlightElement{
 

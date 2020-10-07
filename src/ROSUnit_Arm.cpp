@@ -2,7 +2,7 @@
 
 ROSUnit_Arm::ROSUnit_Arm(ros::NodeHandle& t_main_handler) : ROSUnit(t_main_handler) {
 
-    _arm_client = t_main_handler.serviceClient<positioning_system::Arm>("arm");
+    _arm_client = t_main_handler.serviceClient<flight_controller::Arm>("arm");
 
 }
 
@@ -16,7 +16,7 @@ void ROSUnit_Arm::receive_msg_data(DataMessage* t_msg){
 
         ArmDataMessage* _arm_msg = (ArmDataMessage*)t_msg;
         
-        positioning_system::Arm srv;
+        flight_controller::Arm srv;
         srv.request.armed = _arm_msg->isArmed;
         bool success = _arm_client.call(srv);
 

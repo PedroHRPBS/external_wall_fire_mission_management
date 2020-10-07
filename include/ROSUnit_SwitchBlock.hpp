@@ -1,7 +1,7 @@
 #pragma once
 #include "ROSUnit.hpp"
 #include "SwitchBlockMsg_FS.hpp"
-#include <positioning_system/SwitchBlock.h>
+#include <flight_controller/SwitchBlock.h>
 
 class ROSUnit_SwitchBlock :  public ROSUnit{
 

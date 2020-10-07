@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   genmsg
   message_generation
-  positioning_system
+  flight_controller
   common_srv
 
 )
@@ -32,7 +32,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs message_runtime positioning_system common_srv 
+  CATKIN_DEPENDS roscpp std_msgs message_runtime flight_controller common_srv 
 )
 
 include_directories(
